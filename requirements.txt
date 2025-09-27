@@ -1,6 +1,7 @@
 Flask
 Flask-Cors
 fiona
+geopandas
 gunicorn
 numpy
 pyproj
