@@ -32,6 +32,10 @@ WORKDIR /app
 # clean, slim image. We don't bring along any of the temporary build tools.
 COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 
+# --- THIS IS THE NEW, CRITICAL LINE ---
+# Copy the executable programs (like gunicorn) from the builder stage
+COPY --from=builder /usr/local/bin /usr/local/bin
+
 # Now, copy your application code and data into the final image.
 COPY main.py .
 COPY ./data ./data
@@ -43,4 +47,4 @@ COPY ./data ./data
 # - `main:app` tells Gunicorn to run the `app` object found in the `main.py` file.
 # - `--timeout 0` prevents Gunicorn from killing a worker on a slow request,
 #   which is useful in a serverless environment with cold starts.
-CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "--workers", "1", "--threads", "8", "--timeout", "0", "main:app"]
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 main:app

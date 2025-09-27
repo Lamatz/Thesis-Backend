@@ -8,9 +8,40 @@ import geopandas as gpd # We'll keep geopandas for simplicity here
 from shapely.geometry import Point
 from pyproj import Transformer
 
+
+# --- BREADCRUMB 7: This will only be seen if Gunicorn is NOT used ---
+print("--- Script finished, web server should be running ---")
+
 # App Initialization
 app = Flask(__name__)
 CORS(app) 
+
+# --- Data Loading with Breadcrumbs ---
+try:
+    # --- BREADCRUMB 2: About to load soil shapefile ---
+    print("--- Attempting to load soil shapefile ---")
+    soil_shapefile = "./data/soil_map/hays.shp" # Double-check this path is EXACTLY right
+    with fiona.open(soil_shapefile, 'r') as collection:
+        soil_features = [(shape(f['geometry']), f['properties']) for f in collection]
+    # --- BREADCRUMB 3: Soil shapefile loaded successfully ---
+    print("--- Soil shapefile loaded successfully ---")
+
+except Exception as e:
+    # --- BREADCRUMB (ERROR): Soil shapefile failed to load ---
+    print(f"--- FATAL ERROR loading soil shapefile: {e} ---")
+    soil_features = []
+
+try:
+    # --- BREADCRUMB 4: About to reference slope tif ---
+    print("--- Referencing slope tif path ---")
+    slope_tif = "./data/slope_map/slope.tif" # Double-check this path is EXACTLY right
+    # --- BREADCRUMB 5: Slope tif path referenced successfully ---
+    print("--- Slope tif path referenced successfully ---")
+
+except Exception as e:
+    # --- BREADCRUMB (ERROR): Something went wrong with slope tif ---
+    print(f"--- FATAL ERROR with slope tif setup: {e} ---")
+
 
 
 # Load spatial files (assuming these paths are correct relative to where the script is run)
@@ -107,6 +138,10 @@ if __name__ == "__main__":
     # Default to 8080 for local testing.
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
+
+
+# --- BREADCRUMB 7: This will only be seen if Gunicorn is NOT used ---
+print("--- Script finished, web server should be running ---")
 
 # # =========================================================================
 # # == MODIFIED: Fetch weather data to accept time and generate chart data ==
