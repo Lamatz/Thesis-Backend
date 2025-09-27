@@ -125,7 +125,10 @@ def get_geo_data():
     slope = get_slope(lon, lat)
     soil = get_soil_type(lon, lat)
 
-    return jsonify({"slope": slope, "soil_type": soil})
+    return jsonify({
+        "slope": float(slope) if slope is not None else None,
+        "soil_type": str(soil) if soil is not None else None
+    })
 
 
 print("--- Python script loaded. Gunicorn can now start the server. ---")
