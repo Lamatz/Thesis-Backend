@@ -1,0 +1,8 @@
+Flask
+Flask-Cors
+fiona
+gunicorn
+numpy
+pyproj
+rasterio
+shapely
