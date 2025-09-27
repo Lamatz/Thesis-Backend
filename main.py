@@ -1,6 +1,7 @@
 
 import os
 from flask import Flask, request, jsonify
+import traceback
 from flask_cors import CORS
 import rasterio
 import numpy as np
@@ -9,42 +10,37 @@ from shapely.geometry import Point
 from pyproj import Transformer
 
 
-# --- BREADCRUMB 7: This will only be seen if Gunicorn is NOT used ---
-print("--- Script finished, web server should be running ---")
+print("--- Python script starting to load... ---")
 
 # App Initialization
 app = Flask(__name__)
 CORS(app) 
 
-# --- Data Loading with Breadcrumbs ---
+# --- Data Loading with Full Error Reporting ---
 try:
-    # --- BREADCRUMB 2: About to load soil shapefile ---
-    print("--- Attempting to load soil shapefile ---")
-    soil_shapefile = "./data/soil_map/hays.shp" # Double-check this path is EXACTLY right
+    print("--- Attempting to load soil shapefile... ---")
+    soil_shapefile = "./data/soil_map/hays.shp"
     with fiona.open(soil_shapefile, 'r') as collection:
         soil_features = [(shape(f['geometry']), f['properties']) for f in collection]
-    # --- BREADCRUMB 3: Soil shapefile loaded successfully ---
-    print("--- Soil shapefile loaded successfully ---")
-
-except Exception as e:
-    # --- BREADCRUMB (ERROR): Soil shapefile failed to load ---
-    print(f"--- FATAL ERROR loading soil shapefile: {e} ---")
+    print("--- Soil shapefile loaded successfully. ---")
+except Exception:
+    print("--- FATAL ERROR LOADING SOIL SHAPEFILE ---")
+    traceback.print_exc()  # <-- THIS PRINTS THE FULL ERROR REPORT
     soil_features = []
 
 try:
-    # --- BREADCRUMB 4: About to reference slope tif ---
-    print("--- Referencing slope tif path ---")
-    slope_tif = "./data/slope_map/slope.tif" # Double-check this path is EXACTLY right
-    # --- BREADCRUMB 5: Slope tif path referenced successfully ---
-    print("--- Slope tif path referenced successfully ---")
-
-except Exception as e:
-    # --- BREADCRUMB (ERROR): Something went wrong with slope tif ---
-    print(f"--- FATAL ERROR with slope tif setup: {e} ---")
-
+    print("--- Attempting to reference slope tif... ---")
+    slope_tif = "./data/slope_map/slope.tif"
+    # We will try to open it here to ensure it's valid
+    with rasterio.open(slope_tif) as src:
+        print(f"--- Slope TIF opened successfully. CRS is {src.crs} ---")
+except Exception:
+    print("--- FATAL ERROR WITH SLOPE TIF FILE ---")
+    traceback.print_exc()  # <-- THIS PRINTS THE FULL ERROR REPORT
 
 
-# Load spatial files (assuming these paths are correct relative to where the script is run)
+
+# Load spatial files 
 try:
     soil_shapefile = "./data/soil_map/hays.shp"
     soil_gdf = gpd.read_file(soil_shapefile)
@@ -131,6 +127,8 @@ def get_geo_data():
 
     return jsonify({"slope": slope, "soil_type": soil})
 
+
+print("--- Python script loaded. Gunicorn can now start the server. ---")
 
 # --- Server Start Logic for Cloud Run ---
 if __name__ == "__main__":
