@@ -6,4 +6,5 @@ gunicorn
 numpy
 pyproj
 rasterio
+scikit-learn
 shapely

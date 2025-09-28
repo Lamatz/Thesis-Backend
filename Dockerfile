@@ -42,6 +42,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Now, copy your application code and data into the final image.
 COPY main.py .
 COPY ./data ./data
+COPY ./models ./models
 
 # This is the command that will be executed when your container starts on Cloud Run.
 # We use Gunicorn, a production-ready web server, instead of Flask's basic one.
